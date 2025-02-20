@@ -30,10 +30,41 @@ jobs:
       - name: Build
         run: npm run build
        
+  sonar-analysis:
+    name: SonarQube Analysis
+    runs-on: ubuntu-latest
+    needs: build-and-test
 
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+          cache: 'npm'
 
-  #sonar-analysis:
+      - name: Install dependencies
+        run: npm install
+
+      - name: SonarQube Scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          npm install -g sonarqube-scanner
+          sonar-scanner \
+            -Dsonar.projectKey=mohamedutopios_cesi-ci-cd-ops-angular \
+            -Dsonar.organization=mohamedutopios \
+            -Dsonar.sources=src/app \
+            -Dsonar.tests=src \
+            -Dsonar.test.inclusions=src/**/*.spec.ts \
+            -Dsonar.exclusions=**/node_modules/**,src/test.ts,src/environments/** \
+            -Dsonar.coverage.exclusions=src/environments/** \
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.login=$SONAR_TOKEN
+
 
   #docker-build-push:
 
